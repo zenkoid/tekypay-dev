@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TekyPay — Conoce tu Línea de Crédito</title>
+<style>
+  :root {
+    --blue:    #0047BA;
+    --blue-dk: #003494;
+    --green:   #84BD00;
+    --green-dk:#6A9700;
+    --dark:    #2B2B2B;
+    --gray:    #6B7A99;
+    --border:  #DDE3EE;
+    --bg:      #F5F7FA;
+    --white:   #FFFFFF;
+    --error:   #D32F2F;
+    --warn:    #F57C00;
+
+    /* nivel colors */
+    --start-bg:#ECEFF1; --start:#546E7A;
+    --flex-bg: #E3F2FD; --flex: #1565C0;
+    --plus-bg: #E0F2F1; --plus: #00796B;
+    --max-bg:  #FFF8E1; --max:  #F57C00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;padding-bottom:60px}
+
+  /* ── HEADER ── */
+  .header{background:#fff;padding:14px 20px 10px;text-align:center;border-bottom:3px solid var(--green);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .header img{height:48px;width:auto;display:block;margin:0 auto 4px}
+  .header-sub{font-size:12px;color:var(--gray);font-weight:500}
+
+  /* ── HERO ── */
+  .hero{background:linear-gradient(135deg,var(--blue-dk),var(--blue));padding:28px 20px 32px;text-align:center;position:relative;overflow:hidden}
+  .hero::after{content:'';position:absolute;bottom:-20px;left:0;right:0;height:40px;background:var(--bg);border-radius:50% 50% 0 0 / 40px}
+  .hero-title{font-size:22px;font-weight:900;color:#fff;line-height:1.25;margin-bottom:8px}
+  .hero-title span{color:var(--green)}
+  .hero-sub{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;max-width:320px;margin:0 auto}
+
+  /* ── STEPS ── */
+  .steps{display:flex;justify-content:center;gap:0;padding:24px 20px 8px}
+  .step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:90px;position:relative}
+  .step-item:not(:last-child)::after{content:'';position:absolute;top:14px;left:calc(50% + 14px);width:calc(100% - 28px);height:2px;background:var(--border)}
+  .step-item.done::after{background:var(--green)}
+  .step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gray);background:#fff;z-index:1}
+  .step-item.active .step-num{border-color:var(--blue);color:var(--blue);background:#EEF4FF}
+  .step-item.done .step-num{border-color:var(--green);color:#fff;background:var(--green)}
+  .step-label{font-size:10px;color:var(--gray);text-align:center;font-weight:500}
+  .step-item.active .step-label{color:var(--blue);font-weight:700}
+
+  /* ── SECCIÓN ── */
+  .section-card{background:#fff;margin:16px 16px 0;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,71,186,.07)}
+  .section-title{font-size:15px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .section-icon{width:30px;height:30px;background:#EEF4FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .section-desc{font-size:12px;color:var(--gray);margin-bottom:18px;padding-left:38px}
+
+  /* ── CAMPOS ── */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px}
+  .field label .req{color:var(--error);margin-left:2px}
+  .field input,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--dark);background:#fff;-webkit-appearance:none;transition:border-color .2s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,71,186,.08)}
+  .field input.error,.field select.error{border-color:var(--error)}
+  .field-error{font-size:11px;color:var(--error);margin-top:3px;display:none}
+  .field-hint{font-size:11px;color:var(--gray);margin-top:3px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* ── CAPACITY METER ── */
+  .capacity-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px;display:none}
+  .capacity-label{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:8px}
+  .capacity-bar-wrap{background:var(--border);border-radius:6px;height:10px;overflow:hidden;margin-bottom:6px}
+  .capacity-bar{height:100%;border-radius:6px;transition:width .4s,background .4s}
+  .capacity-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--gray)}
+  .capacity-meta strong{color:var(--blue)}
+
+  /* ── BONO CHECKS ── */
+  .bono-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--bg)}
+  .bono-row:last-child{border-bottom:none}
+  .bono-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);margin-top:2px;flex-shrink:0}
+  .bono-info{flex:1}
+  .bono-title{font-size:13px;font-weight:600;color:var(--dark)}
+  .bono-desc{font-size:11px;color:var(--gray);margin-top:2px}
+  .bono-pts{font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;padding-top:2px}
+
+  /* ── BOTÓN ── */
+  .btn-primary{width:100%;padding:15px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s,transform .1s;letter-spacing:.3px}
+  .btn-primary:active{transform:scale(.98)}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed}
+  .btn-secondary{width:100%;padding:13px;background:transparent;color:var(--blue);border:1.5px solid var(--blue);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+
+  /* ── SPINNER ── */
+  .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── RESULTADO ── */
+  .result-screen{display:none}
+  .nivel-card{margin:20px 16px 0;border-radius:16px;padding:24px 20px;text-align:center}
+  .nivel-badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:12px}
+  .nivel-name{font-size:28px;font-weight:900;margin-bottom:6px}
+  .nivel-linea-label{font-size:13px;opacity:.7;margin-bottom:4px}
+  .nivel-linea{font-size:38px;font-weight:900;line-height:1}
+  .nivel-desc{font-size:13px;opacity:.75;margin-top:10px;line-height:1.6}
+
+  /* score ring */
+  .score-ring-wrap{display:flex;justify-content:center;margin:16px 0}
+  .score-ring{width:110px;height:110px;position:relative}
+  .score-ring svg{transform:rotate(-90deg)}
+  .score-ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+  .score-ring .track{stroke:rgba(255,255,255,.2)}
+  .score-ring .fill{stroke:#fff;stroke-dasharray:283;stroke-dashoffset:283;transition:stroke-dashoffset 1s ease}
+  .score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .score-num{font-size:28px;font-weight:900;color:#fff;line-height:1}
+  .score-lbl{font-size:10px;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:.5px}
+
+  /* detalle resultado */
+  .result-detail{background:#fff;margin:0 16px;border-radius:0 0 14px 14px;padding:18px 20px}
+  .detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bg)}
+  .detail-row:last-child{border-bottom:none}
+  .detail-label{font-size:13px;color:var(--gray)}
+  .detail-value{font-size:13px;font-weight:700;color:var(--dark)}
+  .detail-value.green{color:var(--green)}
+  .detail-value.red{color:var(--error)}
+
+  /* catálogo accesible */
+  .catalogo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .cat-chip{font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:1.5px solid}
+
+  /* aviso 30% */
+  .alerta-30{background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px 14px;margin:12px 16px 0;font-size:12px;color:#E65100;line-height:1.6;display:none}
+  .alerta-30 strong{display:block;margin-bottom:4px}
+
+  /* trust */
+  .trust-row{display:flex;justify-content:center;gap:16px;padding:20px 16px 0;flex-wrap:wrap}
+  .trust-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
+
+  /* version */
+  .version-tag{text-align:center;padding:10px;font-size:10px;color:#B0BEC5}
+
+  /* privacy */
+  .privacy-box{background:#F0F7FF;border:1px solid #C8DEFF;border-radius:10px;padding:12px;margin-bottom:14px}
+  .privacy-box p{font-size:11px;color:#4A5568;line-height:1.6}
+  .privacy-check{display:flex;align-items:flex-start;gap:8px;margin-top:8px}
+  .privacy-check input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:1px;accent-color:var(--blue)}
+  .privacy-check label{font-size:12px;color:var(--dark);font-weight:500;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="img/TekyPayLogo.jpeg" alt="TekyPay">
+  <div class="header-sub">Programa de Beneficio Corporativo</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-title">Conoce tu <span>Línea de Crédito</span></div>
+  <div class="hero-sub">Calificación en menos de 2 minutos. Sin Buró de Crédito. Sin trámites complicados.</div>
+</div>
+
+<!-- STEPS -->
+<div class="steps">
+  <div class="step-item active" id="s1">
+    <div class="step-num">1</div>
+    <div class="step-label">Datos laborales</div>
+  </div>
+  <div class="step-item" id="s2">
+    <div class="step-num">2</div>
+    <div class="step-label">Datos financieros</div>
+  </div>
+  <div class="step-item" id="s3">
+    <div class="step-num">3</div>
+    <div class="step-label">Tu resultado</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     FORMULARIO
+═══════════════════════════════════ -->
+<div id="formSection">
+
+  <!-- SECCIÓN 1: DATOS PERSONALES Y LABORALES -->
+  <div class="section-card">
+    <div class="section-title">
+      <div class="section-icon">💼</div>
+      Datos Laborales
+    </div>
+    <div class="section-desc">Información de tu situación en la empresa actual</div>
+
+    <div class="field">
+      <label>Nombre completo <span class="req">*</span></label>
+      <input type="text" id="nombre" placeholder="Ej. Ana Martínez Soto">
+      <div class="field-error" id="err_nombre">Campo requerido</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Edad <span class="req">*</span></label>
+        <input type="number" id="edad" placeholder="Ej. 32" min="18" max="70">
+        <div class="field-error" id="err_edad">Entre 18 y 70 años</div>
+      </div>
+      <div class="field">
+        <label>Antigüedad laboral <span class="req">*</span></label>
+        <select id="antiguedad">
+          <option value="">Selecciona</option>
+          <option value="3">Menos de 6 meses</option>
+          <option value="15">6 a 12 meses</option>
+          <option value="25">1 a 2 años</option>
+          <option value="35">2 a 5 años</option>
+          <option value="45">Más de 5 años</option>
+        </select>
+        <div class="field-error" id="err_antiguedad">Requerido</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Empresa donde trabajas <span class="req">*</span></label>
+      <select id="empresa_id">
+        <option value="">Cargando empresas...</option>
+      </select>
+      <div class="field-error" id="err_empresa_id">Selecciona tu empresa</div>
+      <div class="field-hint">Solo aparecen empresas afiliadas a TekyPay</div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: DATOS FINANCIEROS -->
+  <div class="section-card">
+    <div class="section-title">
+      <div class="section-icon">💰</div>
+      Datos Financieros
+    </div>
+    <div class="section-desc">Para calcular tu capacidad de pago real. Información 100% confidencial.</div>
+
+    <div class="field">
+      <label>Ingreso mensual neto <span class="req">*</span></label>
+      <input type="text" id="ingreso" placeholder="$ 0" inputmode="numeric" maxlength="10" style="max-width:200px">
+      <div class="field-error" id="err_ingreso">Ingresa un monto válido</div>
+      <div class="field-hint">Lo que recibes en tu cuenta después de descuentos de ley</div>
+    </div>
+
+    <div class="field">
+      <label>Gastos mensuales fijos</label>
+      <input type="text" id="gastos" placeholder="$ 0" inputmode="numeric" maxlength="10" style="max-width:200px">
+      <div class="field-hint">Opcional — mejora la precisión de tu calificación</div>
+    </div>
+
+    <!-- CAPACITY METER (dinámico) -->
+    <div class="capacity-box" id="capacityBox">
+      <div class="capacity-label">Capacidad de pago disponible</div>
+      <div class="capacity-bar-wrap">
+        <div class="capacity-bar" id="capacityBar"></div>
+      </div>
+      <div class="capacity-meta">
+        <span>Pago máx. posible: <strong id="pagoMaxEl">$0</strong></span>
+        <span id="capacityPct">0% del ingreso</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 3: BONOS OPCIONALES -->
+  <div class="section-card">
+    <div class="section-title">
+      <div class="section-icon">⭐</div>
+      Bonos de Calificación
+    </div>
+    <div class="section-desc">Factores opcionales que pueden aumentar tu score</div>
+
+    <div class="bono-row">
+      <div class="bono-check">
+        <input type="checkbox" id="bono_buro">
+      </div>
+      <div class="bono-info">
+        <div class="bono-title">Historial de Buró de Crédito positivo</div>
+        <div class="bono-desc">Score Buró superior a 600 puntos (no es requisito, es un bono)</div>
+      </div>
+      <div class="bono-pts">+10 pts</div>
+    </div>
+
+    <div class="bono-row">
+      <div class="bono-check">
+        <input type="checkbox" id="bono_empleados" disabled>
+      </div>
+      <div class="bono-info">
+        <div class="bono-title">Empresa con más de 50 colaboradores</div>
+        <div class="bono-desc">Se asigna automáticamente según la empresa seleccionada</div>
+      </div>
+      <div class="bono-pts">+5 pts</div>
+    </div>
+  </div>
+
+  <!-- AVISO DE PRIVACIDAD -->
+  <div class="section-card">
+    <div class="privacy-box">
+      <p><strong style="color:var(--blue)">Aviso de Privacidad (LFPDPPP)</strong><br><br>
+      Los datos proporcionados serán tratados por <strong>TekyPay</strong> exclusivamente para calcular tu capacidad crediticia y presentarte opciones de financiamiento. No se compartirán con terceros sin tu consentimiento. Derechos ARCO: <strong>privacidad@tekypay.mx</strong></p>
+      <div class="privacy-check">
+        <input type="checkbox" id="acepta_privacidad">
+        <label for="acepta_privacidad">He leído y acepto el Aviso de Privacidad</label>
+      </div>
+      <div class="field-error" id="err_privacidad" style="display:none;margin-top:6px">Debes aceptar para continuar</div>
+    </div>
+
+    <button class="btn-primary" id="btnCalificar" onclick="calcularScore()">
+      Calcular mi Línea de Crédito
+    </button>
+  </div>
+
+  <div class="trust-row">
+    <div class="trust-item">🔒 Sin Buró</div>
+    <div class="trust-item">⚡ 2 minutos</div>
+    <div class="trust-item">✅ LFPDPPP</div>
+  </div>
+  <div class="version-tag">scoring.html v1.3 — TekyPay 2026</div>
+</div>
+
+<!-- ══════════════════════════════════
+     ALERTA 30%
+═══════════════════════════════════ -->
+<div class="alerta-30" id="alerta30">
+  <strong>⚠️ Capacidad de pago limitada</strong>
+  Tu pago mensual estimado supera el 30% de tu ingreso neto. TekyPay no puede aprobar créditos que comprometan más del 30% de tu salario para proteger tu estabilidad financiera. Te recomendamos explorar productos de menor valor o plazos más largos.
+</div>
+
+<!-- ══════════════════════════════════
+     PANTALLA DE RESULTADO
+═══════════════════════════════════ -->
+<div class="result-screen" id="resultScreen">
+
+  <div class="nivel-card" id="nivelCard">
+    <div class="nivel-badge" id="nivelBadge"></div>
+
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="track" cx="50" cy="50" r="45"/>
+          <circle class="fill" id="scoreArc" cx="50" cy="50" r="45"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-num" id="scoreNum">0</div>
+          <div class="score-lbl">SCORE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nivel-name" id="nivelName"></div>
+    <div class="nivel-linea-label">Tu línea de crédito aprobada</div>
+    <div class="nivel-linea" id="nivelLinea"></div>
+    <div class="nivel-desc" id="nivelDesc"></div>
+  </div>
+
+  <div class="result-detail">
+    <div class="detail-row">
+      <span class="detail-label">Ingreso mensual neto</span>
+      <span class="detail-value" id="res_ingreso"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Pago máximo mensual (30%)</span>
+      <span class="detail-value green" id="res_pagomax"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Antigüedad laboral</span>
+      <span class="detail-value" id="res_antiguedad"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Score calculado</span>
+      <span class="detail-value" id="res_score"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Catálogo accesible</span>
+      <div class="catalogo-row" id="res_catalogo"></div>
+    </div>
+
+    <button class="btn-primary" style="margin-top:16px" onclick="irCatalogo()">
+      Ver Catálogo con mis Productos
+    </button>
+    <button class="btn-secondary" onclick="reiniciar()">
+      Volver a Calificar
+    </button>
+  </div>
+
+  <div class="trust-row">
+    <div class="trust-item">🔒 Datos protegidos</div>
+    <div class="trust-item">✅ LFPDPPP</div>
+  </div>
+  <div class="version-tag">scoring.html v1.3 — TekyPay 2026</div>
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+// ── MÁSCARA DE CANTIDAD ────────────────────────────────────
+function maskCurrency(input) {
+  input.addEventListener('input', function() {
+    let raw = this.value.replace(/[^0-9]/g, '');
+    if (!raw) { this.value = ''; return; }
+    let num = parseInt(raw, 10);
+    this.value = '$' + num.toLocaleString('es-MX');
+    this.dataset.raw = raw;
+  });
+  input.addEventListener('focus', function() {
+    if (this.value) {
+      let raw = this.value.replace(/[^0-9]/g, '');
+      this.value = raw ? '$' + parseInt(raw).toLocaleString('es-MX') : '';
+    }
+  });
+}
+
+function getRawValue(id) {
+  const el = document.getElementById(id);
+  const raw = el.dataset.raw || el.value.replace(/[^0-9]/g, '');
+  return parseFloat(raw) || 0;
+}
+
+// ── CREDENCIALES ───────────────────────────────────────────
+const SUPABASE_URL = 'https://fygespxcsymiccwixzdc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5Z2VzcHhjc3ltaWNjd2l4emRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNzYwMjUsImV4cCI6MjA5Njk1MjAyNX0.YfhTOZUa4PGLmo2Ic8xXLKwzFC5E904JjFZwk5kDDRI';
+const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── MATRIZ DE SCORING ──────────────────────────────────────
+const NIVELES = [
+  { id:'START', min:0,  max:40,  label:'TEKY START', linea_min:4000,  linea_max:7500,  color:'var(--start)', bg:'var(--start-bg)', desc:'Acceso a telefonía de entrada y accesorios tecnológicos.', cats:['Telefonía entrada','Accesorios'] },
+  { id:'FLEX',  min:41, max:60,  label:'TEKY FLEX',  linea_min:7501,  linea_max:12000, color:'var(--flex)',  bg:'var(--flex-bg)',  desc:'Smartphones de gama media, tablets y consolas de videojuegos.', cats:['Telefonía media','Tablets','Gaming'] },
+  { id:'PLUS',  min:61, max:80,  label:'TEKY PLUS',  linea_min:12001, linea_max:25000, color:'var(--plus)',  bg:'var(--plus-bg)',  desc:'iPhones, laptops premium, Smart TV 4K y equipos de cómputo.', cats:['iPhone','Laptops','Smart TV','Cómputo'] },
+  { id:'MAX',   min:81, max:100, label:'TEKY MAX',   linea_min:25001, linea_max:40000, color:'var(--max)',   bg:'var(--max-bg)',   desc:'Catálogo completo: workstations, equipos AiO y línea premium.', cats:['Catálogo completo'] },
+];
+
+// ── CARGAR EMPRESAS ACTIVAS ────────────────────────────────
+async function cargarEmpresas() {
+  const select = document.getElementById('empresa_id');
+  try {
+    const { data, error } = await dbClient
+      .from('empresas')
+      .select('id, nombre_comercial, numero_empleados, tier')
+      .eq('estado', 'activa')
+      .order('nombre_comercial');
+
+    if (error) throw error;
+
+    select.innerHTML = '<option value="">Selecciona tu empresa</option>';
+    if (!data || data.length === 0) {
+      select.innerHTML = '<option value="">No hay empresas activas aún</option>';
+      return;
+    }
+    data.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.dataset.empleados = e.numero_empleados || '';
+      opt.dataset.tier = e.tier || 1;
+      opt.textContent = e.nombre_comercial;
+      select.appendChild(opt);
+    });
+  } catch(err) {
+    select.innerHTML = '<option value="">Error al cargar empresas</option>';
+    console.error('Error cargando empresas:', err);
+  }
+}
+
+// Bono automático por empleados al seleccionar empresa
+document.addEventListener('DOMContentLoaded', () => {
+  cargarEmpresas();
+  maskCurrency(document.getElementById('ingreso'));
+  maskCurrency(document.getElementById('gastos'));
+
+  document.getElementById('empresa_id').addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    const empleados = opt.dataset.empleados || '';
+    const esMayor50 = ['51-100','101+'].includes(empleados);
+    const cb = document.getElementById('bono_empleados');
+    cb.checked = esMayor50;
+    cb.disabled = true; // siempre automático
+  });
+
+  // Capacity meter en tiempo real
+  ['ingreso','gastos'].forEach(id => {
+    document.getElementById(id).addEventListener('input', actualizarCapacity);
+  });
+});
+
+function actualizarCapacity() {
+  const ingreso = getRawValue('ingreso');
+  const gastos  = getRawValue('gastos');
+  if (ingreso <= 0) { document.getElementById('capacityBox').style.display='none'; return; }
+
+  const disponible = ingreso - gastos;
+  const pagoMax    = Math.max(0, disponible * 0.30);
+  const pct        = Math.min(100, Math.round((pagoMax / ingreso) * 100));
+
+  const bar = document.getElementById('capacityBar');
+  bar.style.width   = pct + '%';
+  bar.style.background = pct >= 25 ? 'var(--green)' : pct >= 15 ? 'var(--warn)' : 'var(--error)';
+
+  document.getElementById('pagoMaxEl').textContent = '$' + pagoMax.toLocaleString('es-MX', {minimumFractionDigits:0});
+  document.getElementById('capacityPct').textContent = pct + '% del ingreso';
+  document.getElementById('capacityBox').style.display = 'block';
+}
+
+// ── ALGORITMO DE SCORING ───────────────────────────────────
+function calcularPuntaje(datos) {
+  let score = 0;
+
+  // 1. ANTIGÜEDAD (max 35 pts)
+  score += parseInt(datos.antiguedad);
+
+  // 2. INGRESO (max 30 pts)
+  const ing = datos.ingreso;
+  if      (ing >= 30000) score += 30;
+  else if (ing >= 20000) score += 25;
+  else if (ing >= 15000) score += 20;
+  else if (ing >= 10000) score += 15;
+  else if (ing >= 7000)  score += 10;
+  else if (ing >= 4000)  score += 5;
+
+  // 3. EDAD (max 10 pts)
+  const edad = datos.edad;
+  if (edad >= 25 && edad <= 50) score += 10;
+  else if (edad >= 22 && edad < 25) score += 6;
+  else if (edad > 50 && edad <= 60) score += 6;
+  else score += 3;
+
+  // 4. BONOS
+  if (datos.bono_buro)      score += 10;
+  if (datos.bono_empleados) score += 5;
+
+  return Math.min(100, score);
+}
+
+function getNivel(score) {
+  return NIVELES.find(n => score >= n.min && score <= n.max) || NIVELES[0];
+}
+
+function getLineaCredito(score, nivel, ingreso) {
+  // Línea base del nivel
+  let linea = nivel.linea_min + Math.round((score - nivel.min) / (nivel.max - nivel.min) * (nivel.linea_max - nivel.linea_min));
+  // Cap por capacidad de pago: max 18 meses × pago máximo
+  const pagoMax = ingreso * 0.30;
+  const lineaCap = pagoMax * 18;
+  return Math.min(linea, lineaCap);
+}
+
+// ── VALIDACIONES ───────────────────────────────────────────
+function limpiarErrores() {
+  ['nombre','edad','antiguedad','empresa_id','ingreso','privacidad'].forEach(id => {
+    const err = document.getElementById('err_' + id);
+    const inp = document.getElementById(id);
+    if (err) err.style.display = 'none';
+    if (inp) inp.classList.remove('error');
+  });
+}
+
+function validar() {
+  limpiarErrores();
+  let ok = true;
+
+  const nombre = document.getElementById('nombre').value.trim();
+  const edad   = parseInt(document.getElementById('edad').value);
+  const antig  = document.getElementById('antiguedad').value;
+  const emp    = document.getElementById('empresa_id').value;
+  const ingreso= getRawValue('ingreso');
+  const privac = document.getElementById('acepta_privacidad').checked;
+
+  if (!nombre) { show('err_nombre'); document.getElementById('nombre').classList.add('error'); ok=false; }
+  if (isNaN(edad)||edad<18||edad>70) { show('err_edad'); document.getElementById('edad').classList.add('error'); ok=false; }
+  if (!antig) { show('err_antiguedad'); document.getElementById('antiguedad').classList.add('error'); ok=false; }
+  if (!emp) { show('err_empresa_id'); document.getElementById('empresa_id').classList.add('error'); ok=false; }
+  if (!ingreso||ingreso<1000) { show('err_ingreso','Mínimo $1,000'); document.getElementById('ingreso').classList.add('error'); ok=false; }
+  if (!privac) { show('err_privacidad'); ok=false; }
+
+  return ok;
+}
+function show(id){ const el=document.getElementById(id); if(el) el.style.display='block'; }
+
+// ── CALCULAR Y MOSTRAR ─────────────────────────────────────
+async function calcularScore() {
+  if (!validar()) return;
+
+  const btn = document.getElementById('btnCalificar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Calculando...';
+
+  const datos = {
+    nombre:         document.getElementById('nombre').value.trim(),
+    edad:           parseInt(document.getElementById('edad').value),
+    antiguedad:     document.getElementById('antiguedad').value,
+    empresa_id:     document.getElementById('empresa_id').value,
+    ingreso:        getRawValue('ingreso'),
+    gastos:         getRawValue('gastos'),
+    bono_buro:      document.getElementById('bono_buro').checked,
+    bono_empleados: document.getElementById('bono_empleados').checked,
+  };
+
+  const score  = calcularPuntaje(datos);
+  const nivel  = getNivel(score);
+  const linea  = getLineaCredito(score, nivel, datos.ingreso);
+  const pagoMax= (datos.ingreso - datos.gastos) * 0.30;
+
+  // Guardar en Supabase
+  try {
+    await dbClient.from('colaboradores').insert([{
+      empresa_id:           datos.empresa_id,
+      nombre_completo:      datos.nombre,
+      edad:                 datos.edad,
+      antiguedad_meses:     parseInt(datos.antiguedad),
+      ingreso_mensual_neto: datos.ingreso,
+      gastos_mensuales:     datos.gastos,
+      buro_credito:         datos.bono_buro,
+      score_calculado:      score,
+      nivel_teky:           nivel.id,
+      linea_credito_asignada: linea,
+      linea_disponible:     linea,
+    }]);
+  } catch(e) {
+    console.error('Error guardando colaborador:', e);
+    // No bloqueamos — mostramos el resultado igual
+  }
+
+  // Actualizar steps
+  document.getElementById('s1').className = 'step-item done';
+  document.getElementById('s2').className = 'step-item done';
+  document.getElementById('s3').className = 'step-item active';
+
+  mostrarResultado(score, nivel, linea, datos, pagoMax);
+
+  btn.disabled = false;
+  btn.innerHTML = 'Calcular mi Línea de Crédito';
+}
+
+function mostrarResultado(score, nivel, linea, datos, pagoMax) {
+  // Guardar para URL del catálogo
+  _lastIngreso = datos.ingreso;
+  _lastNivel   = nivel.id;
+  _lastLinea   = linea;
+
+  // Ocultar form, mostrar resultado
+  document.getElementById('formSection').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  // Nivel card
+  const card = document.getElementById('nivelCard');
+  card.style.background = nivel.bg;
+
+  const badge = document.getElementById('nivelBadge');
+  badge.textContent = nivel.id;
+  badge.style.background = nivel.color;
+  badge.style.color = '#fff';
+
+  document.getElementById('nivelName').textContent = nivel.label;
+  document.getElementById('nivelName').style.color = nivel.color;
+  document.getElementById('nivelLinea').textContent = '$' + Math.round(linea).toLocaleString('es-MX');
+  document.getElementById('nivelLinea').style.color = nivel.color;
+  document.getElementById('nivelDesc').textContent = nivel.desc;
+
+  // Score ring animado
+  setTimeout(() => {
+    const arc = document.getElementById('scoreArc');
+    const circumference = 283;
+    const offset = circumference - (score / 100) * circumference;
+    arc.style.strokeDashoffset = offset;
+    arc.style.stroke = nivel.color;
+
+    // Contador animado
+    let current = 0;
+    const interval = setInterval(() => {
+      current = Math.min(current + 2, score);
+      document.getElementById('scoreNum').textContent = current;
+      if (current >= score) clearInterval(interval);
+    }, 20);
+  }, 100);
+
+  // Detalle
+  document.getElementById('res_ingreso').textContent  = '$' + datos.ingreso.toLocaleString('es-MX');
+  document.getElementById('res_pagomax').textContent  = '$' + Math.round(pagoMax).toLocaleString('es-MX') + '/mes';
+  document.getElementById('res_score').textContent    = score + ' / 100 pts';
+
+  const antMap = {'3':'Menos de 6 meses','15':'6 a 12 meses','25':'1 a 2 años','35':'2 a 5 años','45':'Más de 5 años'};
+  document.getElementById('res_antiguedad').textContent = antMap[datos.antiguedad] || datos.antiguedad;
+
+  // Catálogo chips
+  const catWrap = document.getElementById('res_catalogo');
+  catWrap.innerHTML = '';
+  nivel.cats.forEach(cat => {
+    const chip = document.createElement('div');
+    chip.className = 'cat-chip';
+    chip.textContent = cat;
+    chip.style.background  = nivel.bg;
+    chip.style.color       = nivel.color;
+    chip.style.borderColor = nivel.color;
+    catWrap.appendChild(chip);
+  });
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function irCatalogo() {
+  const nivelName  = document.getElementById('nivelName').textContent;
+  const nivelId    = nivelName.replace('TEKY ','').trim();
+  const lineaText  = document.getElementById('nivelLinea').textContent.replace(/[$,]/g,'').trim();
+  const ingresoVal = getRawValue('ingreso');
+  window.location.href = 'catalogo.html?nivel=' + nivelId + '&linea=' + lineaText + '&ingreso=' + Math.round(ingresoVal);
+}
+
+function reiniciar() {
+  document.getElementById('formSection').style.display = 'block';
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('s1').className = 'step-item active';
+  document.getElementById('s2').className = 'step-item';
+  document.getElementById('s3').className = 'step-item';
+  document.getElementById('scoreArc').style.strokeDashoffset = 283;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

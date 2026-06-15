@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TekyPay — Registro de Empresa Afiliada</title>
+<style>
+  :root {
+    --teky-blue: #0047BA;
+    --teky-green: #84BD00;
+    --teky-dark: #2B2B2B;
+    --teky-gray: #F5F7FA;
+    --teky-border: #DDE3EE;
+    --teky-error: #D32F2F;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--teky-gray);
+    color: var(--teky-dark);
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: #ffffff;
+    padding: 16px 24px 12px;
+    text-align: center;
+    border-bottom: 3px solid var(--teky-green);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .header-logo img {
+    height: 52px;
+    width: auto;
+    display: block;
+    margin: 0 auto 4px;
+  }
+  .header-sub {
+    color: var(--teky-gray-text, #6B7A99);
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    background: var(--teky-blue);
+    padding: 8px 24px 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+  }
+  .step.active { color: #fff; font-weight: 600; }
+  .step.done { color: var(--teky-green); }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-divider {
+    width: 24px; height: 2px;
+    background: rgba(255,255,255,0.2);
+    align-self: center;
+  }
+
+  /* CARD */
+  .card {
+    background: #fff;
+    margin: 20px 16px 0;
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 12px rgba(0,71,186,0.08);
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--teky-blue);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title-icon {
+    width: 32px; height: 32px;
+    background: #EEF4FF;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: #6B7A99;
+    margin-bottom: 20px;
+    padding-left: 40px;
+  }
+
+  /* FORM */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teky-dark);
+    margin-bottom: 6px;
+  }
+  .field label .req { color: var(--teky-error); margin-left: 2px; }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--teky-border);
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--teky-dark);
+    background: #fff;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--teky-blue);
+    box-shadow: 0 0 0 3px rgba(0,71,186,0.08);
+  }
+  .field input.error,
+  .field select.error { border-color: var(--teky-error); }
+  .field-error {
+    font-size: 12px;
+    color: var(--teky-error);
+    margin-top: 4px;
+    display: none;
+  }
+  .field-hint {
+    font-size: 12px;
+    color: #9AA3B5;
+    margin-top: 4px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* AVISO PRIVACIDAD */
+  .privacy-box {
+    background: #F0F7FF;
+    border: 1px solid #C8DEFF;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .privacy-box p {
+    font-size: 12px;
+    color: #4A5568;
+    line-height: 1.6;
+  }
+  .privacy-box strong { color: var(--teky-blue); }
+  .privacy-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .privacy-check input[type="checkbox"] {
+    width: 18px; height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    accent-color: var(--teky-blue);
+  }
+  .privacy-check label {
+    font-size: 13px;
+    color: var(--teky-dark);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* SUBMIT */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: var(--teky-green);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--teky-blue);
+    border: 1.5px solid var(--teky-blue);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  /* SUCCESS */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: #E8F5E9;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+  }
+  .success-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--teky-blue);
+    margin-bottom: 10px;
+  }
+  .success-msg {
+    font-size: 15px;
+    color: #6B7A99;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .success-ref {
+    background: var(--teky-gray);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--teky-dark);
+    margin-bottom: 24px;
+  }
+  .success-ref strong { color: var(--teky-blue); display: block; margin-bottom: 4px; }
+
+  /* LOADING */
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TRUST BADGES */
+  .trust-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px 16px 0;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #6B7A99;
+  }
+  .trust-item span { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <img src="img/TekyPayLogo.jpeg" alt="TekyPay — Programa de Beneficio Corporativo">
+  </div>
+  <div class="header-sub">Programa de Beneficio Corporativo</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar">
+  <div class="step active" id="step1">
+    <div class="step-num">1</div>
+    <span>Datos de la empresa</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step" id="step2">
+    <div class="step-num">2</div>
+    <span>Confirmación</span>
+  </div>
+</div>
+
+<!-- FORMULARIO -->
+<div id="formSection">
+
+  <!-- SECCIÓN 1: DATOS LEGALES -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-icon">🏢</div>
+      Datos Legales y Fiscales
+    </div>
+    <div class="card-desc">Información oficial de la empresa para el convenio de afiliación</div>
+
+    <div class="field">
+      <label>Razón Social <span class="req">*</span></label>
+      <input type="text" id="razon_social" placeholder="Ej. Distribuidora López S.A. de C.V.">
+      <div class="field-error" id="err_razon_social">Campo requerido</div>
+    </div>
+
+    <div class="field">
+      <label>RFC con Homoclave <span class="req">*</span></label>
+      <input type="text" id="rfc" placeholder="Ej. DLO920315AB3" maxlength="13"
+        style="text-transform:uppercase">
+      <div class="field-error" id="err_rfc">RFC inválido (12-13 caracteres)</div>
+    </div>
+
+    <div class="field">
+      <label>Nombre Comercial <span class="req">*</span></label>
+      <input type="text" id="nombre_comercial" placeholder="Ej. Distribuidora López">
+      <div class="field-error" id="err_nombre_comercial">Campo requerido</div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: CONTACTO -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-icon">👤</div>
+      Responsable del Convenio
+    </div>
+    <div class="card-desc">Persona de contacto para la gestión del beneficio en la empresa</div>
+
+    <div class="field">
+      <label>Nombre Completo del Responsable <span class="req">*</span></label>
+      <input type="text" id="nombre_responsable" placeholder="Ej. Ana Martínez Soto">
+      <div class="field-error" id="err_nombre_responsable">Campo requerido</div>
+    </div>
+
+    <div class="field">
+      <label>Puesto / Cargo</label>
+      <input type="text" id="puesto_responsable" placeholder="Ej. Gerente de Recursos Humanos">
+    </div>
+
+    <div class="field">
+      <label>Correo Electrónico Oficial <span class="req">*</span></label>
+      <input type="email" id="correo_oficial" placeholder="rh@empresa.com.mx">
+      <div class="field-error" id="err_correo_oficial">Correo electrónico inválido</div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 3: PERFIL -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-icon">📊</div>
+      Perfil de la Empresa
+    </div>
+    <div class="card-desc">Nos ayuda a configurar el programa de beneficio ideal para su equipo</div>
+
+    <div class="field">
+      <label>Giro / Sector <span class="req">*</span></label>
+      <select id="giro">
+        <option value="">Selecciona el giro principal</option>
+        <option value="manufactura">Manufactura e Industria</option>
+        <option value="servicios">Servicios Profesionales</option>
+        <option value="comercio">Comercio y Retail</option>
+        <option value="logistica">Logística y Transporte</option>
+        <option value="salud">Salud y Farmacéutica</option>
+        <option value="educacion">Educación</option>
+        <option value="tecnologia">Tecnología</option>
+        <option value="construccion">Construcción</option>
+        <option value="alimentos">Alimentos y Bebidas</option>
+        <option value="otro">Otro</option>
+      </select>
+      <div class="field-error" id="err_giro">Selecciona un giro</div>
+    </div>
+
+    <div class="field">
+      <label>Número de Colaboradores <span class="req">*</span></label>
+      <select id="numero_empleados">
+        <option value="">Selecciona el rango</option>
+        <option value="1-15">1 – 15 colaboradores</option>
+        <option value="16-30">16 – 30 colaboradores</option>
+        <option value="31-50">31 – 50 colaboradores</option>
+        <option value="51-100">51 – 100 colaboradores</option>
+        <option value="101+">Más de 100 colaboradores</option>
+      </select>
+      <div class="field-error" id="err_numero_empleados">Selecciona un rango</div>
+      <div class="field-hint">Este dato determina los beneficios del programa para tu equipo</div>
+    </div>
+  </div>
+
+  <!-- AVISO DE PRIVACIDAD -->
+  <div class="card">
+    <div class="privacy-box">
+      <p>
+        <strong>Aviso de Privacidad (LFPDPPP)</strong><br><br>
+        Los datos proporcionados en este formulario serán tratados por <strong>TekyPay</strong>
+        con la finalidad de gestionar el convenio de afiliación corporativa y administrar
+        el programa de beneficio para sus colaboradores. Sus datos no serán compartidos
+        con terceros sin su consentimiento, salvo requerimiento legal. Usted tiene derecho
+        a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos (Derechos ARCO)
+        enviando un correo a <strong>privacidad@tekypay.mx</strong>.
+      </p>
+      <div class="privacy-check">
+        <input type="checkbox" id="acepta_privacidad">
+        <label for="acepta_privacidad">
+          He leído y acepto el Aviso de Privacidad y autorizo el tratamiento de los datos
+          proporcionados para los fines descritos.
+        </label>
+      </div>
+      <div class="field-error" id="err_privacidad" style="display:none; margin-top:8px;">
+        Debes aceptar el aviso de privacidad para continuar
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" onclick="enviarFormulario()">
+      Solicitar Afiliación
+    </button>
+  </div>
+
+  <!-- TRUST -->
+  <div style="text-align:center;padding:8px;font-size:11px;color:#B0BEC5;">registro-empresa.html v1.6 — TekyPay 2026</div>
+<div class="trust-row">
+    <div class="trust-item"><span>🔒</span> Datos cifrados</div>
+    <div class="trust-item"><span>✅</span> LFPDPPP</div>
+    <div class="trust-item"><span>⚡</span> Respuesta en 24 hrs</div>
+  </div>
+
+</div>
+
+<!-- PANTALLA DE ÉXITO -->
+<div class="card success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">¡Solicitud Enviada!</div>
+  <div class="success-msg">
+    Hemos recibido la solicitud de afiliación de tu empresa. Un ejecutivo de TekyPay
+    se pondrá en contacto contigo en un plazo máximo de <strong>24 horas hábiles</strong>
+    para activar el programa de beneficio.
+  </div>
+  <div class="success-ref">
+    <strong>Número de folio:</strong>
+    <span id="folioRef">—</span>
+  </div>
+  <div class="success-ref">
+    <strong>Empresa registrada:</strong>
+    <span id="empresaRef">—</span>
+  </div>
+  <div class="success-ref">
+    <strong>Correo de confirmación enviado a:</strong>
+    <span id="correoRef">—</span>
+  </div>
+  <button class="btn-secondary" onclick="resetForm()">Registrar otra empresa</button>
+</div>
+
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── CREDENCIALES SUPABASE ──────────────────────────────────
+const SUPABASE_URL = 'https://fygespxcsymiccwixzdc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5Z2VzcHhjc3ltaWNjd2l4emRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNzYwMjUsImV4cCI6MjA5Njk1MjAyNX0.YfhTOZUa4PGLmo2Ic8xXLKwzFC5E904JjFZwk5kDDRI';
+const { createClient } = window.supabase;
+const dbClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── VALIDACIONES ───────────────────────────────────────────
+function mostrarError(id, msg) {
+  const el = document.getElementById('err_' + id);
+  const input = document.getElementById(id);
+  if (el) { el.style.display = 'block'; if (msg) el.textContent = msg; }
+  if (input) input.classList.add('error');
+}
+function limpiarError(id) {
+  const el = document.getElementById('err_' + id);
+  const input = document.getElementById(id);
+  if (el) el.style.display = 'none';
+  if (input) input.classList.remove('error');
+}
+
+function validarRFC(rfc) {
+  return /^[A-ZÑ&]{3,4}(0[0-9]|[1-9][0-9])(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[A-Z0-9]{3}$/i.test(rfc.trim());
+}
+function validarEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function validarFormulario() {
+  let valido = true;
+  const campos = ['razon_social','rfc','nombre_comercial','nombre_responsable','correo_oficial','giro','numero_empleados'];
+  campos.forEach(c => limpiarError(c));
+  document.getElementById('err_privacidad').style.display = 'none';
+
+  const razon = document.getElementById('razon_social').value.trim();
+  const rfc = document.getElementById('rfc').value.trim();
+  const comercial = document.getElementById('nombre_comercial').value.trim();
+  const responsable = document.getElementById('nombre_responsable').value.trim();
+  const correo = document.getElementById('correo_oficial').value.trim();
+  const giro = document.getElementById('giro').value;
+  const empleados = document.getElementById('numero_empleados').value;
+  const privacidad = document.getElementById('acepta_privacidad').checked;
+
+  if (!razon) { mostrarError('razon_social', 'La razón social es requerida'); valido = false; }
+  if (!validarRFC(rfc)) { mostrarError('rfc', 'RFC inválido (ej. DLO920315AB3)'); valido = false; }
+  if (!comercial) { mostrarError('nombre_comercial', 'El nombre comercial es requerido'); valido = false; }
+  if (!responsable) { mostrarError('nombre_responsable', 'El nombre del responsable es requerido'); valido = false; }
+  if (!validarEmail(correo)) { mostrarError('correo_oficial', 'Correo electrónico inválido'); valido = false; }
+  if (!giro) { mostrarError('giro', 'Selecciona el giro de la empresa'); valido = false; }
+  if (!empleados) { mostrarError('numero_empleados', 'Selecciona el rango de colaboradores'); valido = false; }
+  if (!privacidad) {
+    document.getElementById('err_privacidad').style.display = 'block';
+    valido = false;
+  }
+
+  return valido;
+}
+
+// ── ENVÍO ──────────────────────────────────────────────────
+async function enviarFormulario() {
+  if (!validarFormulario()) {
+    // Scroll al primer error
+    const firstError = document.querySelector('.field-error[style*="block"], .field-error:not([style])');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Enviando solicitud...';
+
+  const datos = {
+    razon_social:       document.getElementById('razon_social').value.trim(),
+    rfc:                document.getElementById('rfc').value.trim().toUpperCase(),
+    nombre_comercial:   document.getElementById('nombre_comercial').value.trim(),
+    nombre_responsable: document.getElementById('nombre_responsable').value.trim(),
+    puesto_responsable: document.getElementById('puesto_responsable').value.trim(),
+    correo_oficial:     document.getElementById('correo_oficial').value.trim().toLowerCase(),
+    giro:               document.getElementById('giro').value,
+    numero_empleados:   document.getElementById('numero_empleados').value,
+    estado:             'pendiente',
+    tier:               1
+  };
+
+  try {
+    const { data, error } = await dbClient
+      .from('empresas')
+      .insert([datos])
+      .select();
+
+    if (error) throw error;
+
+    // Generar folio
+    const folio = 'TP-' + Date.now().toString().slice(-8);
+
+    // Mostrar pantalla de éxito
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    document.getElementById('folioRef').textContent = folio;
+    document.getElementById('empresaRef').textContent = datos.nombre_comercial;
+    document.getElementById('correoRef').textContent = datos.correo_oficial;
+
+    // Actualizar progress
+    document.getElementById('step1').className = 'step done';
+    document.getElementById('step2').className = 'step active';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = 'Solicitar Afiliación';
+
+    let msg = 'Ocurrió un error al enviar la solicitud. Por favor intenta de nuevo.';
+    if (err.code === '23505') {
+      msg = 'Este RFC ya está registrado en nuestro sistema. Contacta a soporte@tekypay.mx';
+    }
+    alert(msg);
+    console.error('Error Supabase:', err);
+  }
+}
+
+// ── RESET ──────────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('formSection').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('step1').className = 'step active';
+  document.getElementById('step2').className = 'step';
+  document.querySelectorAll('input, select').forEach(el => el.value = '');
+  document.getElementById('acepta_privacidad').checked = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('btnSubmit').innerHTML = 'Solicitar Afiliación';
+}
+
+// RFC uppercase automático
+document.getElementById('rfc').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+</script>
+</body>
+</html>

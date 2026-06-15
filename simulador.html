@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TekyPay — Simulador de Crédito</title>
+<style>
+  :root {
+    --blue:    #0047BA;
+    --blue-dk: #003494;
+    --green:   #84BD00;
+    --dark:    #2B2B2B;
+    --gray:    #6B7A99;
+    --border:  #DDE3EE;
+    --bg:      #F5F7FA;
+    --white:   #FFFFFF;
+    --error:   #D32F2F;
+    --warn:    #F57C00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;padding-bottom:60px}
+
+  /* HEADER */
+  .header{background:#fff;padding:14px 20px 10px;text-align:center;border-bottom:3px solid var(--green);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .header img{height:48px;width:auto;display:block;margin:0 auto 4px}
+  .header-sub{font-size:12px;color:var(--gray);font-weight:500}
+
+  /* HERO PRODUCTO */
+  .producto-hero{background:linear-gradient(135deg,var(--blue-dk),var(--blue));padding:20px;display:flex;align-items:center;gap:16px}
+  .producto-marca{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:4px}
+  .producto-nombre{font-size:18px;font-weight:900;color:#fff;line-height:1.25}
+  .producto-precio{font-size:14px;color:rgba(255,255,255,.75);margin-top:4px}
+  .nivel-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;font-size:11px;color:#fff;font-weight:700;margin-top:8px;display:inline-block}
+
+  /* CARDS */
+  .card{background:#fff;margin:16px 16px 0;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,71,186,.07)}
+  .card-title{font-size:15px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .card-icon{width:30px;height:30px;background:#EEF4FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+
+  /* OPCIONES */
+  .opcion-group{margin-bottom:18px}
+  .opcion-label{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  .opcion-chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:9px 16px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-weight:600;color:var(--gray);cursor:pointer;transition:all .2s;background:#fff}
+  .chip.active{border-color:var(--blue);color:var(--blue);background:#EEF4FF}
+  .chip:active{transform:scale(.97)}
+
+  /* RESUMEN DINÁMICO */
+  .resumen-box{background:var(--bg);border-radius:12px;padding:16px;margin-bottom:16px}
+  .resumen-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+  .resumen-row:last-child{border-bottom:none}
+  .resumen-label{font-size:13px;color:var(--gray)}
+  .resumen-value{font-size:13px;font-weight:700;color:var(--dark)}
+  .resumen-value.blue{color:var(--blue)}
+  .resumen-value.green{color:var(--green)}
+  .resumen-value.red{color:var(--error)}
+  .resumen-value.big{font-size:22px;font-weight:900;color:var(--blue)}
+
+  /* PAGO HIGHLIGHT */
+  .pago-highlight{background:linear-gradient(135deg,var(--blue-dk),var(--blue));border-radius:14px;padding:20px;text-align:center;margin-bottom:16px}
+  .pago-label{font-size:12px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .pago-monto{font-size:42px;font-weight:900;color:#fff;line-height:1}
+  .pago-periodo{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px}
+  .pago-capacidad{font-size:11px;margin-top:10px;padding:6px 14px;border-radius:20px;display:inline-block;font-weight:600}
+  .pago-capacidad.ok{background:rgba(132,189,0,.2);color:#84BD00}
+  .pago-capacidad.warn{background:rgba(245,124,0,.2);color:#F57C00}
+  .pago-capacidad.error{background:rgba(211,47,47,.2);color:#D32F2F}
+
+  /* ALERTA 30% */
+  .alerta-30{background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#E65100;line-height:1.6;display:none}
+  .alerta-30 strong{display:block;margin-bottom:2px}
+
+  /* TABLA AMORTIZACIÓN */
+  .tabla-wrap{overflow-x:auto;margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:var(--blue);color:#fff;padding:8px 10px;text-align:left;font-weight:700;font-size:11px}
+  td{padding:8px 10px;border-bottom:1px solid var(--bg);color:var(--dark)}
+  tr:nth-child(even) td{background:#F8FAFC}
+  tr:last-child td{font-weight:700;background:#E8F5E9;color:#2E7D32}
+
+  /* BOTONES */
+  .btn-primary{width:100%;padding:15px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;letter-spacing:.3px}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-secondary{width:100%;padding:13px;background:transparent;color:var(--blue);border:1.5px solid var(--blue);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+
+  /* SPINNER */
+  .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ÉXITO */
+  .success-screen{display:none}
+  .success-icon{width:72px;height:72px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px}
+  .success-title{font-size:22px;font-weight:900;color:var(--blue);text-align:center;margin-bottom:8px}
+  .success-msg{font-size:14px;color:var(--gray);text-align:center;line-height:1.6;margin-bottom:20px}
+  .folio-box{background:var(--bg);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px}
+  .folio-box strong{display:block;font-size:12px;color:var(--gray);margin-bottom:4px}
+  .folio-num{font-size:20px;font-weight:900;color:var(--blue)}
+
+  /* VERSION */
+  .version-tag{text-align:center;padding:10px;font-size:10px;color:#B0BEC5}
+
+  /* TRUST */
+  .trust-row{display:flex;justify-content:center;gap:16px;padding:16px;flex-wrap:wrap}
+  .trust-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="img/TekyPayLogo.jpeg" alt="TekyPay">
+  <div class="header-sub">Simulador de Crédito</div>
+</div>
+
+<!-- HERO PRODUCTO -->
+<div class="producto-hero" id="productoHero">
+  <div>
+    <div class="producto-marca" id="heroMarca">—</div>
+    <div class="producto-nombre" id="heroNombre">Cargando producto...</div>
+    <div class="producto-precio" id="heroPrecio"></div>
+    <div class="nivel-pill" id="heroPill" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     SIMULADOR
+═══════════════════════════════ -->
+<div id="simSection">
+
+  <!-- OPCIONES DE CRÉDITO -->
+  <div class="card">
+    <div class="card-title"><div class="card-icon">⚙️</div>Configura tu Crédito</div>
+
+    <div class="opcion-group">
+      <div class="opcion-label">Enganche</div>
+      <div class="opcion-chips">
+        <div class="chip active" data-group="enganche" data-val="0.20" onclick="selectChip(this)">20%</div>
+        <div class="chip" data-group="enganche" data-val="0.25" onclick="selectChip(this)">25%</div>
+        <div class="chip" data-group="enganche" data-val="0.30" onclick="selectChip(this)">30%</div>
+      </div>
+    </div>
+
+    <div class="opcion-group">
+      <div class="opcion-label">Plazo</div>
+      <div class="opcion-chips">
+        <div class="chip active" data-group="plazo" data-val="3" onclick="selectChip(this)">3 meses</div>
+        <div class="chip" data-group="plazo" data-val="6" onclick="selectChip(this)">6 meses</div>
+        <div class="chip" data-group="plazo" data-val="9" onclick="selectChip(this)">9 meses</div>
+      </div>
+    </div>
+
+    <div class="opcion-group">
+      <div class="opcion-label">Periodicidad de pago</div>
+      <div class="opcion-chips">
+        <div class="chip" data-group="periodo" data-val="semanal" onclick="selectChip(this)">Semanal</div>
+        <div class="chip active" data-group="periodo" data-val="quincenal" onclick="selectChip(this)">Quincenal</div>
+        <div class="chip" data-group="periodo" data-val="mensual" onclick="selectChip(this)">Mensual</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGO HIGHLIGHT -->
+  <div class="card">
+    <div class="pago-highlight">
+      <div class="pago-label">Tu pago</div>
+      <div class="pago-monto" id="pagoMonto">$—</div>
+      <div class="pago-periodo" id="pagoPeriodo">—</div>
+      <div class="pago-capacidad" id="pagoCapacidad"></div>
+    </div>
+
+    <!-- ALERTA 30% -->
+    <div class="alerta-30" id="alerta30">
+      <strong>⚠️ Este pago supera tu capacidad</strong>
+      El pago calculado excede el 30% de tu ingreso neto. TekyPay no puede aprobar este crédito en estos términos. Prueba con un plazo más largo o un enganche mayor.
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="resumen-box">
+      <div class="resumen-row">
+        <span class="resumen-label">Precio de contado</span>
+        <span class="resumen-value" id="res_precio">—</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Enganche</span>
+        <span class="resumen-value green" id="res_enganche">—</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Monto financiado</span>
+        <span class="resumen-value blue" id="res_financiado">—</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Tasa mensual</span>
+        <span class="resumen-value" id="res_tasa">—</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Número de pagos</span>
+        <span class="resumen-value" id="res_pagos">—</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Total a pagar</span>
+        <span class="resumen-value" id="res_total">—</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btnSolicitar" onclick="generarSolicitud()">
+      📄 Generar Solicitud de Crédito
+    </button>
+    <button class="btn-secondary" onclick="window.history.back()">
+      ← Volver al Catálogo
+    </button>
+  </div>
+
+  <!-- TABLA DE AMORTIZACIÓN -->
+  <div class="card">
+    <div class="card-title"><div class="card-icon">📅</div>Tabla de Amortización</div>
+    <div class="tabla-wrap">
+      <table id="tablaAmort">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="trust-row">
+    <div class="trust-item">🔒 Datos cifrados</div>
+    <div class="trust-item">✅ LFPDPPP</div>
+    <div class="trust-item">📄 Documento legal</div>
+  </div>
+  <div class="version-tag">simulador.html v1.2 — TekyPay 2026</div>
+</div>
+
+<!-- ═══════════════════════════════
+     PANTALLA DE ÉXITO
+═══════════════════════════════ -->
+<div class="success-screen" id="successScreen">
+  <div class="card">
+    <div class="success-icon">✅</div>
+    <div class="success-title">¡Solicitud Generada!</div>
+    <div class="success-msg">Tu solicitud de crédito ha sido registrada y el PDF ha sido descargado. Entrega el documento firmado al área de Recursos Humanos para activar tu crédito.</div>
+    <div class="folio-box">
+      <strong>Número de Folio</strong>
+      <div class="folio-num" id="folioNum">—</div>
+    </div>
+    <button class="btn-primary" onclick="window.location.href='catalogo.html'">Ver más productos</button>
+    <button class="btn-secondary" onclick="window.location.href='scoring.html'">Nueva calificación</button>
+  </div>
+  <div class="version-tag">simulador.html v1.2 — TekyPay 2026</div>
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── CREDENCIALES ───────────────────────────────────────────
+const SUPABASE_URL = 'https://fygespxcsymiccwixzdc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5Z2VzcHhjc3ltaWNjd2l4emRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNzYwMjUsImV4cCI6MjA5Njk1MjAyNX0.YfhTOZUa4PGLmo2Ic8xXLKwzFC5E904JjFZwk5kDDRI';
+const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── PARÁMETROS DE URL ──────────────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const PRODUCTO = decodeURIComponent(params.get('producto') || 'Producto no especificado');
+const PRECIO   = parseFloat(params.get('precio')) || 0;
+const MARCA    = decodeURIComponent(params.get('marca') || '');
+const NIVEL    = params.get('nivel') || '';
+const LINEA    = parseFloat(params.get('linea')) || 0;
+const INGRESO  = parseFloat(params.get('ingreso')) || 0;
+
+// ── ESTADO ─────────────────────────────────────────────────
+let enganche  = 0.20;
+let plazoMeses= 3;
+let periodo   = 'quincenal';
+const TASAS = {3: 0.049, 6: 0.055, 9: 0.060};
+const COMISION = 9; // comisión semanal fija
+
+// ── INIT ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Hero
+  document.getElementById('heroMarca').textContent   = MARCA || 'TekyPay';
+  document.getElementById('heroNombre').textContent  = PRODUCTO;
+  document.getElementById('heroPrecio').textContent  = PRECIO ? '$' + PRECIO.toLocaleString('es-MX') + ' MXN' : '';
+
+  if (NIVEL) {
+    const names = {START:'TEKY START',FLEX:'TEKY FLEX',PLUS:'TEKY PLUS',MAX:'TEKY MAX'};
+    const pill = document.getElementById('heroPill');
+    pill.textContent = names[NIVEL] || NIVEL;
+    pill.style.display = 'inline-block';
+  }
+
+  if (!PRECIO) {
+    document.getElementById('heroNombre').textContent = '⚠️ No se recibió un producto';
+    document.getElementById('btnSolicitar').disabled = true;
+    return;
+  }
+
+  calcular();
+});
+
+// ── CHIPS ──────────────────────────────────────────────────
+function selectChip(el) {
+  const group = el.dataset.group;
+  document.querySelectorAll('[data-group="' + group + '"]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  if (group === 'enganche')  enganche   = parseFloat(el.dataset.val);
+  if (group === 'plazo')     plazoMeses = parseInt(el.dataset.val);
+  if (group === 'periodo')   periodo    = el.dataset.val;
+  calcular();
+}
+
+// ── FÓRMULA FRANCESA ──────────────────────────────────────
+function calcularPago(capital, tasaMensual, nPagos) {
+  if (tasaMensual === 0) return capital / nPagos;
+  return capital * tasaMensual / (1 - Math.pow(1 + tasaMensual, -nPagos));
+}
+
+function getPeriodoConfig() {
+  var tasa = TASAS[plazoMeses] || 0.055;
+  if (periodo === 'semanal')   return { n: plazoMeses * 4,  tasa: tasa / 4,  label: 'semanal',    labelPlural: 'semanales',    dias: 7  };
+  if (periodo === 'quincenal') return { n: plazoMeses * 2,  tasa: tasa / 2,  label: 'quincenal',  labelPlural: 'quincenales',  dias: 15 };
+  return                              { n: plazoMeses,       tasa: tasa,      label: 'mensual',    labelPlural: 'mensuales',    dias: 30 };
+}
+
+// ── CALCULAR ───────────────────────────────────────────────
+function calcular() {
+  const montoEnganche = PRECIO * enganche;
+  const capital       = PRECIO - montoEnganche;
+  const cfg           = getPeriodoConfig();
+  const pagoBase      = calcularPago(capital, cfg.tasa, cfg.n);
+  const pagoTotal     = pagoBase + (periodo === 'semanal' ? COMISION : periodo === 'quincenal' ? COMISION * 2 : COMISION * 4);
+  const totalPagar    = montoEnganche + (pagoTotal * cfg.n);
+
+  // Resumen
+  document.getElementById('res_precio').textContent    = mxn(PRECIO);
+  document.getElementById('res_enganche').textContent  = mxn(montoEnganche);
+  document.getElementById('res_financiado').textContent= mxn(capital);
+  document.getElementById('res_pagos').textContent     = cfg.n + ' pagos ' + cfg.labelPlural;
+  if(document.getElementById('res_tasa')) document.getElementById('res_tasa').textContent = (TASAS[plazoMeses]*100).toFixed(1) + '%';
+  document.getElementById('res_total').textContent     = mxn(totalPagar);
+
+  // Pago highlight
+  document.getElementById('pagoMonto').textContent   = mxn(pagoTotal);
+  document.getElementById('pagoPeriodo').textContent = 'por pago ' + cfg.labelPlural.replace('es','');
+
+  // Capacidad de pago
+  const capEl  = document.getElementById('pagoCapacidad');
+  const alerta = document.getElementById('alerta30');
+  const btn    = document.getElementById('btnSolicitar');
+  const pagoMens = periodo === 'mensual' ? pagoTotal : periodo === 'quincenal' ? pagoTotal * 2 : pagoTotal * 4;
+
+  if (INGRESO > 0) {
+    // Usamos ingreso real del scoring
+    const pct = Math.round((pagoMens / INGRESO) * 100);
+    if (pct > 30) {
+      capEl.className   = 'pago-capacidad error';
+      capEl.textContent = '⚠️ Supera el 30% de tu capacidad (' + pct + '%)';
+      alerta.style.display = 'block';
+      btn.disabled = true;
+    } else if (pct > 22) {
+      capEl.className   = 'pago-capacidad warn';
+      capEl.textContent = '⚡ ' + pct + '% de tu ingreso — límite cercano';
+      alerta.style.display = 'none';
+      btn.disabled = false;
+    } else {
+      capEl.className   = 'pago-capacidad ok';
+      capEl.textContent = '✅ ' + pct + '% de tu ingreso — dentro del límite';
+      alerta.style.display = 'none';
+      btn.disabled = false;
+    }
+  } else if (LINEA > 0) {
+    // Fallback: estimado por línea de crédito
+    const ingresoEst = LINEA / 18 / 0.30;
+    const pct = Math.round((pagoMens / ingresoEst) * 100);
+    if (pct > 30) {
+      capEl.className   = 'pago-capacidad error';
+      capEl.textContent = '⚠️ Supera el 30% de tu capacidad';
+      alerta.style.display = 'block';
+      btn.disabled = true;
+    } else {
+      capEl.className   = 'pago-capacidad ok';
+      capEl.textContent = '✅ Pago dentro del rango TekyPay';
+      alerta.style.display = 'none';
+      btn.disabled = false;
+    }
+  } else {
+    capEl.className   = 'pago-capacidad ok';
+    capEl.textContent = '✅ Pago dentro del rango TekyPay';
+    alerta.style.display = 'none';
+    btn.disabled = false;
+  }
+
+  // Tabla de amortización
+  generarTabla(capital, cfg, pagoTotal, montoEnganche);
+}
+
+function mxn(n) { return '$' + n.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+// ── TABLA DE AMORTIZACIÓN ──────────────────────────────────
+function generarTabla(capital, cfg, pagoTotal, engancheMonto) {
+  const body   = document.getElementById('tablaBody');
+  const hoy    = new Date();
+  let saldo    = capital;
+  let rows     = '';
+
+  // Fila 0 — Enganche
+  rows += '<tr><td>0</td><td>' + formatFecha(hoy) + '</td><td><strong>' + mxn(engancheMonto) + '</strong></td><td>' + mxn(saldo) + '</td></tr>';
+
+  for (let i = 1; i <= cfg.n; i++) {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() + (i * cfg.dias));
+    const interes = saldo * cfg.tasa;
+    const abono   = pagoTotal - interes - COMISION;
+    saldo = Math.max(0, saldo - abono);
+    rows += '<tr><td>' + i + '</td><td>' + formatFecha(fecha) + '</td><td>' + mxn(pagoTotal) + '</td><td>' + mxn(saldo) + '</td></tr>';
+  }
+
+  // Totales
+  const cfg2    = getPeriodoConfig();
+  const totalPag= engancheMonto + pagoTotal * cfg.n;
+  rows += '<tr><td colspan="2">TOTAL</td><td>' + mxn(totalPag) + '</td><td>$0.00</td></tr>';
+  body.innerHTML = rows;
+}
+
+function formatFecha(d) {
+  return d.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+// ── GENERAR SOLICITUD ──────────────────────────────────────
+async function generarSolicitud() {
+  const btn = document.getElementById('btnSolicitar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generando solicitud...';
+
+  const cfg           = getPeriodoConfig();
+  const montoEnganche = PRECIO * enganche;
+  const capital       = PRECIO - montoEnganche;
+  const pagoBase      = calcularPago(capital, cfg.tasa, cfg.n);
+  const pagoTotal     = pagoBase + (periodo === 'semanal' ? COMISION : periodo === 'quincenal' ? COMISION * 2 : COMISION * 4);
+  const folio         = 'TP-' + Date.now().toString().slice(-8);
+
+  // Guardar en Supabase
+  try {
+    const { data, error } = await dbClient.from('solicitudes_credito').insert([{
+      producto:         PRODUCTO,
+      precio_contado:   PRECIO,
+      enganche_porcentaje: enganche * 100,
+      enganche_monto:   montoEnganche,
+      monto_financiado: capital,
+      tasa_mensual:     TASA_MENSUAL,
+      numero_pagos:     cfg.n,
+      periodicidad:     periodo,
+      pago_periodico:   pagoTotal,
+      estado:           'pendiente',
+    }]).select();
+
+    // Guardar amortizaciones
+    if (data && data[0]) {
+      const solicitudId = data[0].id;
+      const hoy = new Date();
+      const amorts = [];
+      for (let i = 1; i <= cfg.n; i++) {
+        const fecha = new Date(hoy);
+        fecha.setDate(hoy.getDate() + (i * cfg.dias));
+        amorts.push({
+          solicitud_id:  solicitudId,
+          numero_pago:   i,
+          fecha_cobro:   fecha.toISOString().split('T')[0],
+          monto:         pagoTotal,
+          estatus_cobro: 'pendiente',
+        });
+      }
+      await dbClient.from('amortizaciones').insert(amorts);
+    }
+  } catch(e) {
+    console.error('Error Supabase:', e);
+    // Continuamos — el PDF se genera igual
+  }
+
+  // Generar PDF
+  generarPDF(folio, montoEnganche, capital, cfg, pagoTotal);
+
+  // Mostrar éxito
+  document.getElementById('simSection').style.display   = 'none';
+  document.getElementById('successScreen').style.display = 'block';
+  document.getElementById('folioNum').textContent        = folio;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── GENERACIÓN DE PDF ──────────────────────────────────────
+function generarPDF(folio, engancheMonto, capital, cfg, pagoTotal) {
+  const hoy      = new Date();
+  const fechaStr = hoy.toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'});
+  const totalPagar = engancheMonto + pagoTotal * cfg.n;
+
+  // Construir tabla de amortización para PDF
+  let tablaRows = '';
+  let saldo = capital;
+  for (let i = 1; i <= Math.min(cfg.n, 36); i++) {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() + (i * cfg.dias));
+    const interes = saldo * cfg.tasa;
+    const abono   = pagoTotal - interes - COMISION;
+    saldo = Math.max(0, saldo - abono);
+    tablaRows += '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center">' + i + '</td>'
+              + '<td style="padding:5px 8px;border-bottom:1px solid #eee">' + formatFecha(fecha) + '</td>'
+              + '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right">' + mxn(pagoTotal) + '</td>'
+              + '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right">' + mxn(Math.max(0,saldo)) + '</td></tr>';
+  }
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Solicitud de Crédito TekyPay — ${folio}</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#2B2B2B;margin:0;padding:20px;font-size:12px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #84BD00;padding-bottom:12px;margin-bottom:16px}
+    .logo{font-size:28px;font-weight:900;color:#0047BA}
+    .logo span{color:#84BD00}
+    .folio{text-align:right;font-size:11px;color:#6B7A99}
+    .folio strong{display:block;font-size:16px;color:#0047BA}
+    h2{font-size:14px;color:#0047BA;border-bottom:2px solid #E0F2F1;padding-bottom:6px;margin:16px 0 10px}
+    .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F5F7FA;font-size:12px}
+    .row .lbl{color:#6B7A99}
+    .row .val{font-weight:700}
+    .highlight{background:#0047BA;color:#fff;border-radius:8px;padding:12px 16px;text-align:center;margin:14px 0}
+    .highlight .monto{font-size:28px;font-weight:900}
+    .highlight .sub{font-size:11px;opacity:.8;margin-top:2px}
+    table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
+    th{background:#0047BA;color:#fff;padding:6px 8px;text-align:left}
+    .firma-section{margin-top:24px;display:flex;gap:40px}
+    .firma-box{flex:1;border-top:2px solid #2B2B2B;padding-top:6px;text-align:center;font-size:11px;color:#6B7A99}
+    .aviso{background:#F5F7FA;border-left:3px solid #0047BA;padding:10px 12px;font-size:10px;color:#6B7A99;line-height:1.6;margin-top:16px}
+    .total-row td{background:#E8F5E9;font-weight:700;color:#2E7D32}
+  </style></head><body>
+
+  <div class="header">
+    <div>
+      <div class="logo">TEKY<span>Pay</span></div>
+      <div style="font-size:11px;color:#6B7A99;margin-top:2px">Programa de Beneficio Corporativo</div>
+    </div>
+    <div class="folio">
+      Solicitud de Crédito<br>
+      <strong>${folio}</strong>
+      <div style="margin-top:4px">${fechaStr}</div>
+    </div>
+  </div>
+
+  <h2>Datos del Producto</h2>
+  <div class="row"><span class="lbl">Producto</span><span class="val">${PRODUCTO}</span></div>
+  <div class="row"><span class="lbl">Marca</span><span class="val">${MARCA}</span></div>
+  <div class="row"><span class="lbl">Precio de contado</span><span class="val">${mxn(PRECIO)}</span></div>
+  ${NIVEL ? '<div class="row"><span class="lbl">Nivel TEKY</span><span class="val">TEKY ' + NIVEL + '</span></div>' : ''}
+
+  <h2>Condiciones del Crédito</h2>
+  <div class="row"><span class="lbl">Enganche (${Math.round(enganche*100)}%)</span><span class="val">${mxn(engancheMonto)}</span></div>
+  <div class="row"><span class="lbl">Monto financiado</span><span class="val">${mxn(capital)}</span></div>
+  <div class="row"><span class="lbl">Tasa mensual</span><span class="val">5.5%</span></div>
+  <div class="row"><span class="lbl">Plazo</span><span class="val">${plazoMeses} meses (${cfg.n} pagos ${cfg.label}s)</span></div>
+  <div class="row"><span class="lbl">Total a pagar</span><span class="val">${mxn(totalPagar)}</span></div>
+
+  <div class="highlight">
+    <div class="monto">${mxn(pagoTotal)}</div>
+    <div class="sub">Pago ${cfg.label} — Descuento automático vía nómina</div>
+  </div>
+
+  <h2>Tabla de Amortización</h2>
+  <table>
+    <thead><tr><th>#</th><th>Fecha de cobro</th><th>Monto</th><th>Saldo restante</th></tr></thead>
+    <tbody>
+      <tr><td style="padding:5px 8px;text-align:center;font-weight:700">0</td>
+          <td style="padding:5px 8px">${fechaStr}</td>
+          <td style="padding:5px 8px;text-align:right;font-weight:700">${mxn(engancheMonto)}</td>
+          <td style="padding:5px 8px;text-align:right">${mxn(capital)}</td></tr>
+      ${tablaRows}
+      <tr class="total-row">
+        <td colspan="2" style="padding:6px 8px">TOTAL</td>
+        <td style="padding:6px 8px;text-align:right">${mxn(totalPagar)}</td>
+        <td style="padding:6px 8px;text-align:right">$0.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Autorización de Descuento Vía Nómina</h2>
+  <p style="line-height:1.7;font-size:12px">
+    El colaborador que suscribe la presente solicitud autoriza expresamente a su empresa empleadora
+    a realizar el descuento periódico de <strong>${mxn(pagoTotal)}</strong> de forma <strong>${cfg.label}</strong>
+    de su salario neto, con destino a <strong>TekyPay</strong>, en concepto de pago del crédito para
+    la adquisición del producto indicado. Esta autorización tiene vigencia durante los
+    <strong>${cfg.n} periodos de pago</strong> acordados, iniciando en la siguiente fecha de nómina
+    posterior a la firma del presente documento.
+  </p>
+
+  <div class="firma-section">
+    <div class="firma-box">
+      <br><br>
+      Firma del Colaborador<br>
+      Nombre: ___________________________
+    </div>
+    <div class="firma-box">
+      <br><br>
+      Firma y Sello RH<br>
+      Empresa: __________________________
+    </div>
+    <div class="firma-box">
+      <br><br>
+      Autorizado por TekyPay<br>
+      Folio: ${folio}
+    </div>
+  </div>
+
+  <div class="aviso">
+    <strong>Aviso de Privacidad:</strong> Los datos contenidos en este documento son tratados por TekyPay
+    conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).
+    Para ejercer sus derechos ARCO escriba a privacidad@tekypay.mx
+  </div>
+
+  <script>window.onload = function(){ window.print(); }<\/script>
+  </body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href     = url;
+  link.download = 'TekyPay_Solicitud_' + folio + '.html';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
