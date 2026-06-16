@@ -69,6 +69,9 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:#eef1f7;color:va
 .solicitar-btn{width:100%;padding:10px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .18s;margin-top:6px}
 .solicitar-btn:hover{opacity:.88}
 .solicitar-btn svg{width:14px;height:14px;flex-shrink:0}
+.solicitar-btn.is-disabled{background:var(--gray-100);color:var(--gray-400);border:1.5px solid var(--gray-200);cursor:not-allowed;font-weight:600}
+.solicitar-btn.is-disabled:hover{opacity:1}
+.solicitar-btn.is-disabled svg{opacity:.55}
 #specsModal{position:fixed;inset:0;background:rgba(10,20,50,.75);display:none;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(5px);padding:20px}
 #specsModal.open{display:flex}
 .specs-box{background:#fff;border-radius:20px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22);display:flex;flex-direction:column}
@@ -383,6 +386,29 @@ var NIVEL_RANGES = {
   filterProducts();
 })();
 
+// ── MODO EXHIBICIÓN / PROMOTOR (sin scoring) ──────────────
+// Si se llega con ?modo=promotor (o sin parámetros de calificación), se muestra
+// un aviso discreto indicando que el catálogo está en modo exhibición.
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('nivel')) return; // ya hay scoring: no aplica
+  var esPromotor = (params.get('modo') || '').toLowerCase() === 'promotor';
+  if (!esPromotor) return;
+
+  var aviso = document.createElement('div');
+  aviso.id = 'promotorBanner';
+  aviso.style.cssText = 'background:linear-gradient(135deg,#1B3F7A,#2a5aad);color:#fff;padding:11px 20px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;line-height:1.4';
+  aviso.innerHTML = '<strong style="letter-spacing:.3px">Modo exhibición</strong>'
+    + '<span style="opacity:.85">Estás viendo el catálogo para mostrar productos. La solicitud se habilita una vez que el colaborador realiza su evaluación.</span>';
+
+  var anchor = document.getElementById('scoringBanner');
+  if (anchor && anchor.parentNode) {
+    anchor.parentNode.insertBefore(aviso, anchor.nextSibling);
+  } else {
+    document.body.insertBefore(aviso, document.body.firstChild);
+  }
+})();
+
 // API call
 function callClaude(system, user) {
   return fetch('https://tekypayproxy.mayito58.workers.dev', {
@@ -485,9 +511,17 @@ function buildCard(p, idx) {
   if (nivelUrl)   urlProducto += '&nivel='   + nivelUrl;
   if (lineaUrl)   urlProducto += '&linea='   + lineaUrl;
   if (ingresoUrl) urlProducto += '&ingreso=' + ingresoUrl;
-  html += '<button class="solicitar-btn" onclick="window.location.href=\'' + urlProducto + '\'">';
-  html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-  html += 'Solicitar este producto</button>';
+  // El botón solo se habilita cuando el colaborador llega con una calificación previa
+  // (presencia del parámetro 'nivel'). En modo exhibición/promotor se muestra deshabilitado.
+  if (nivelUrl) {
+    html += '<button class="solicitar-btn" onclick="window.location.href=\'' + urlProducto + '\'">';
+    html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    html += 'Solicitar este producto</button>';
+  } else {
+    html += '<button class="solicitar-btn is-disabled" disabled aria-disabled="true" title="Disponible al iniciar sesión con tu evaluación">';
+    html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    html += 'Solo exhibición — sin solicitud</button>';
+  }
   html += '</div></div>';
   return html;
 }
