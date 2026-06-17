@@ -297,7 +297,7 @@
       Los datos proporcionados serán tratados por <strong>TekyPay</strong> exclusivamente para calcular tu capacidad crediticia y presentarte opciones de financiamiento. No se compartirán con terceros sin tu consentimiento. Derechos ARCO: <strong>privacidad@tekypay.mx</strong></p>
       <div class="privacy-check">
         <input type="checkbox" id="acepta_privacidad">
-        <label for="acepta_privacidad">He leído y acepto el Aviso de Privacidad</label>
+        <label for="acepta_privacidad">He leído el Aviso de Privacidad y entiendo que mis datos están protegidos por TekyPay</label>
       </div>
       <div class="field-error" id="err_privacidad" style="display:none;margin-top:6px">Debes aceptar para continuar</div>
     </div>
@@ -385,6 +385,31 @@
     <div class="trust-item">✅ LFPDPPP</div>
   </div>
   <div class="version-tag">scoring.html v1.3 — TekyPay 2026</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANTALLA DE ESPERA (antigüedad < 6 meses)
+═══════════════════════════════════ -->
+<div class="result-screen" id="esperaScreen">
+  <div class="section-card" style="text-align:center;margin-top:24px">
+    <div style="width:72px;height:72px;margin:8px auto 18px;border-radius:50%;background:linear-gradient(135deg,var(--blue-dk),var(--blue));display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    </div>
+    <h2 style="font-size:20px;color:var(--blue-dk);margin:0 0 12px;font-weight:800">Estás muy cerca</h2>
+    <p style="font-size:14px;color:var(--dark);line-height:1.7;margin:0 auto;max-width:340px">
+      Estás cerca de alcanzar los beneficios de <strong>TekyPay</strong>.
+      Te esperamos cuando cumplas los <strong>6 meses de antigüedad</strong> en tu empresa
+      para acompañarte en tu próximo equipo.
+    </p>
+    <p style="font-size:14px;color:var(--blue);font-weight:700;margin:18px 0 4px">¡Hasta pronto!</p>
+    <button class="btn-secondary" style="margin-top:18px" onclick="reiniciar()">
+      Volver al inicio
+    </button>
+  </div>
+  <div class="trust-row">
+    <div class="trust-item">🔒 Datos protegidos</div>
+    <div class="trust-item">✅ LFPDPPP</div>
+  </div>
 </div>
 
 <!-- SUPABASE -->
@@ -616,6 +641,20 @@ async function calcularScore() {
     // No bloqueamos — mostramos el resultado igual
   }
 
+  // ── ANTIGÜEDAD < 6 MESES: no aplica a crédito ──
+  // El registro ya se guardó (prospecto), pero mostramos pantalla de cortesía
+  // en lugar del resultado del scoring.
+  if (datos.antiguedad === '3') {
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('s2').className = 'step-item done';
+    document.getElementById('s3').className = 'step-item active';
+    document.getElementById('esperaScreen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    btn.disabled = false;
+    btn.innerHTML = 'Calcular mi Línea de Crédito';
+    return;
+  }
+
   // Actualizar steps
   document.getElementById('s1').className = 'step-item done';
   document.getElementById('s2').className = 'step-item done';
@@ -704,6 +743,8 @@ function irCatalogo() {
 function reiniciar() {
   document.getElementById('formSection').style.display = 'block';
   document.getElementById('resultScreen').style.display = 'none';
+  var espera = document.getElementById('esperaScreen');
+  if (espera) espera.style.display = 'none';
   document.getElementById('s1').className = 'step-item active';
   document.getElementById('s2').className = 'step-item';
   document.getElementById('s3').className = 'step-item';
