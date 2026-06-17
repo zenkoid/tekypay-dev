@@ -562,7 +562,7 @@ function generarPDF(folio, engancheMonto, capital, cfg, pagoTotal) {
 
   <div class="highlight">
     <div class="monto">${mxn(pagoTotal)}</div>
-    <div class="sub">Pago ${cfg.label} — Descuento automático vía nómina</div>
+    <div class="sub">Pago ${cfg.label} — Cobro automático vía domiciliación bancaria</div>
   </div>
 
   <h2>Tabla de Amortización</h2>
@@ -582,13 +582,13 @@ function generarPDF(folio, engancheMonto, capital, cfg, pagoTotal) {
     </tbody>
   </table>
 
-  <h2>Autorización de Descuento Vía Nómina</h2>
+  <h2>Autorización de Cobro Vía Domiciliación Bancaria</h2>
   <p style="line-height:1.7;font-size:12px">
-    El colaborador que suscribe la presente solicitud autoriza expresamente a su empresa empleadora
-    a realizar el descuento periódico de <strong>${mxn(pagoTotal)}</strong> de forma <strong>${cfg.label}</strong>
-    de su salario neto, con destino a <strong>TekyPay</strong>, en concepto de pago del crédito para
+    El colaborador que suscribe la presente solicitud autoriza expresamente a <strong>TekyPay</strong>
+    a gestionar el cobro periódico de <strong>${mxn(pagoTotal)}</strong> de forma <strong>${cfg.label}</strong>
+    a través de domiciliación bancaria, en concepto de pago del crédito para
     la adquisición del producto indicado. Esta autorización tiene vigencia durante los
-    <strong>${cfg.n} periodos de pago</strong> acordados, iniciando en la siguiente fecha de nómina
+    <strong>${cfg.n} periodos de pago</strong> acordados, iniciando en la fecha de cobro
     posterior a la firma del presente documento.
   </p>
 
@@ -597,11 +597,6 @@ function generarPDF(folio, engancheMonto, capital, cfg, pagoTotal) {
       <br><br>
       Firma del Colaborador<br>
       Nombre: ___________________________
-    </div>
-    <div class="firma-box">
-      <br><br>
-      Firma y Sello RH<br>
-      Empresa: __________________________
     </div>
     <div class="firma-box">
       <br><br>
