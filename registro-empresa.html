@@ -363,6 +363,12 @@
       <input type="email" id="correo_oficial" placeholder="rh@empresa.com.mx">
       <div class="field-error" id="err_correo_oficial">Correo electrónico inválido</div>
     </div>
+
+    <div class="field">
+      <label>Teléfono de Contacto <span class="req">*</span></label>
+      <input type="tel" id="telefono_responsable" placeholder="Ej. 33 1234 5678" maxlength="15">
+      <div class="field-error" id="err_telefono_responsable">Número de teléfono inválido</div>
+    </div>
   </div>
 
   <!-- SECCIÓN 3: PERFIL -->
@@ -501,7 +507,7 @@ function validarEmail(email) {
 
 function validarFormulario() {
   let valido = true;
-  const campos = ['razon_social','rfc','nombre_comercial','nombre_responsable','correo_oficial','giro','numero_empleados'];
+  const campos = ['razon_social','rfc','nombre_comercial','nombre_responsable','correo_oficial','telefono_responsable','giro','numero_empleados'];
   campos.forEach(c => limpiarError(c));
   document.getElementById('err_privacidad').style.display = 'none';
 
@@ -510,6 +516,7 @@ function validarFormulario() {
   const comercial = document.getElementById('nombre_comercial').value.trim();
   const responsable = document.getElementById('nombre_responsable').value.trim();
   const correo = document.getElementById('correo_oficial').value.trim();
+  const telefono = document.getElementById('telefono_responsable').value.trim();
   const giro = document.getElementById('giro').value;
   const empleados = document.getElementById('numero_empleados').value;
   const privacidad = document.getElementById('acepta_privacidad').checked;
@@ -519,6 +526,7 @@ function validarFormulario() {
   if (!comercial) { mostrarError('nombre_comercial', 'El nombre comercial es requerido'); valido = false; }
   if (!responsable) { mostrarError('nombre_responsable', 'El nombre del responsable es requerido'); valido = false; }
   if (!validarEmail(correo)) { mostrarError('correo_oficial', 'Correo electrónico inválido'); valido = false; }
+  if (!/^[\d\s\-\+\(\)]{7,15}$/.test(telefono)) { mostrarError('telefono_responsable', 'Número de teléfono inválido'); valido = false; }
   if (!giro) { mostrarError('giro', 'Selecciona el giro de la empresa'); valido = false; }
   if (!empleados) { mostrarError('numero_empleados', 'Selecciona el rango de colaboradores'); valido = false; }
   if (!privacidad) {
@@ -549,6 +557,7 @@ async function enviarFormulario() {
     nombre_responsable: document.getElementById('nombre_responsable').value.trim(),
     puesto_responsable: document.getElementById('puesto_responsable').value.trim(),
     correo_oficial:     document.getElementById('correo_oficial').value.trim().toLowerCase(),
+    telefono_responsable: document.getElementById('telefono_responsable').value.trim(),
     giro:               document.getElementById('giro').value,
     numero_empleados:   document.getElementById('numero_empleados').value,
     estado:             'activa',
